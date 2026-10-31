@@ -1,1 +1,26 @@
-jadore le cacakicolleaucucu
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Le collier</title>
+<style>
+html,body{margin:0;height:100%;background:#000;overflow:hidden;font-family:Georgia,serif;color:#e8dcc0}
+#stage{position:fixed;inset:0;touch-action:none}
+#stage canvas{display:block;pointer-events:none}
+.ov{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;background:#000;z-index:5;font-size:clamp(20px,4vw,36px);text-align:center}
+#start{display:none}
+#fade{position:fixed;inset:0;background:#000;opacity:1;pointer-events:none;z-index:4}
+#go{font:inherit;font-size:.8em;padding:.6em 1.6em;background:none;color:inherit;border:1px solid #b89b5e;cursor:pointer;letter-spacing:.1em}
+#go:hover{background:#b89b5e;color:#000}
+#site{display:none}
+</style></head><body>
+<div id="stage"></div>
+<div id="fade"></div>
+<div class="ov" id="load">Chargement…</div>
+<div class="ov" id="start"><div>🔊 Mettez du son</div><button id="go">Commencer</button></div>
+
+<!-- ▼▼ METS TON VRAI SITE ICI : il ne s'affiche qu'après la cinématique ▼▼ -->
+<div id="site"><h1 style="padding:2em">Ton site ici</h1></div>
+
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
+<script type="module" src="app.js"></script>
+</body></html>
