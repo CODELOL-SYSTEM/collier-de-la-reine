@@ -10,7 +10,7 @@ const ctex=(w,h,f,rx=1,ry=1)=>{const c=document.createElement('canvas');c.width=
 /* ---------- Rendu ---------- */
 const R=new THREE.WebGLRenderer({antialias:true});
 R.setPixelRatio(Math.min(devicePixelRatio,2));R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;
-R.toneMapping=THREE.ACESFilmicToneMapping;R.toneMappingExposure=1.15;$('stage').appendChild(R.domElement);
+R.toneMapping=THREE.ACESFilmicToneMapping;R.toneMappingExposure=2.2;$('stage').appendChild(R.domElement);
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x070a14);scene.fog=new THREE.Fog(0x070a14,12,40);
 const cam=new THREE.PerspectiveCamera(48,1,.05,80);
 const resize=()=>{R.setSize(innerWidth,innerHeight);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix()};
@@ -30,9 +30,9 @@ function person(o){
   const head=new THREE.Group();head.position.y=.74;body.add(head);
   add(head,new THREE.SphereGeometry(.13,20,16),skin,0,.14,0);
   add(head,new THREE.SphereGeometry(.14,16,12),M(o.hair||0x3a2a1a,.9),0,.17,-.03);
-  if(o.wig)add(head,new THREE.SphereGeometry(.19,16,12),M(0xf0eee8,1),0,.2,-.04);
+  if(o.wig){const wm=M(0xf0eee8,1);add(head,new THREE.SphereGeometry(.17,16,12),wm,0,.23,-.07);[-1,1].forEach(q=>[0,1].forEach(j=>add(head,new THREE.SphereGeometry(.04,10,8),wm,q*.135,.1-j*.05,-.02)))}
   if(o.hat)add(head,new THREE.CylinderGeometry(.2,.24,.05,3),M(0x111111),0,.33,0);
-  const eye=M(0x1a1008);[-.045,.045].forEach(x=>add(head,new THREE.SphereGeometry(.012,8,8),eye,x,.17,.122));
+  const eye=M(0x1a1008),wh=M(0xf4f0e8,.4);[-.045,.045].forEach(x=>{add(head,new THREE.SphereGeometry(.02,10,8),wh,x,.17,.115);add(head,new THREE.SphereGeometry(.011,8,8),eye,x,.17,.133)});
   const brows=[-.045,.045].map(x=>add(head,BX(.05,.012,.01),M(0x2a1a0e),x,.205,.125));
   const mouth=add(head,new THREE.TorusGeometry(.035,.007,6,14,PI),M(0x7a2a2a),0,.11,.124);mouth.rotation.z=PI;
   const sh=[],el=[],hands=[],hip=[],kn=[];
@@ -49,7 +49,7 @@ function person(o){
   root.scale.setScalar(o.s);
   return{root,body,head,brows,mouth,sh,el,hands,hip,kn,dress};
 }
-let T=0;
+let T=0;const T1=31.6,T2=44.1,T3=58.5,OFF=T3-34.4,LS=44.7; // fins de scènes : cuisine, bijoutier, lettres ; décalage table/tableau
 const curl=(p,i,v)=>p.hands[i].f.forEach(f=>f.rotation.x=-v*1.3);
 function face(p,e=0,sur=0,talk=0){ // e: 0 sourire → 1 regard dur ; sur: surprise ; talk: bouche qui parle
   p.mouth.scale.y=clamp(L(1,.12,e)+sur+talk*Math.abs(Math.sin(T*13))*.8,.12,1.8);
@@ -69,9 +69,9 @@ function sit(p){p.body.rotation.x=0;p.hip.forEach(h=>h.rotation.x=-PI/2);p.kn.fo
 /* ---------- Groupes de scènes ---------- */
 const K=new THREE.Group(),TB=new THREE.Group(),BD=new THREE.Group();scene.add(K,TB,BD);TB.visible=BD.visible=false;
 const flames=[];
-function candle(p,x,y,z,i=1.3){add(p,new THREE.CylinderGeometry(.025,.03,.18,10),M(0xf2e6c8),x,y+.09,z);
+function candle(p,x,y,z,i=6){add(p,new THREE.CylinderGeometry(.025,.03,.18,10),M(0xf2e6c8),x,y+.09,z);
   const f=add(p,new THREE.SphereGeometry(.022,8,8),new THREE.MeshBasicMaterial({color:0xffc060}),x,y+.2,z);f.castShadow=false;
-  const l=new THREE.PointLight(0xffa850,i,7,2);l.position.set(x,y+.25,z);p.add(l);flames.push(l)}
+  const l=new THREE.PointLight(0xffa850,i,9,2);l.userData.b=i;l.position.set(x,y+.25,z);p.add(l);flames.push(l)}
 
 /* ===== CUISINE + FENÊTRE + CABINET ===== */
 add(K,BX(18,.2,12),mStone,0,-.1,0);add(K,BX(18,4,.3),mStone,0,2,-3.15);add(K,BX(.3,4,6.6),mStone,-4,2,0);
@@ -81,13 +81,13 @@ add(K,BX(2.8,.2,3),mWood,6.6,.9,0);add(K,BX(2.8,2.6,.2),mStone,6.6,2.2,-1.5);add
 add(K,new THREE.CircleGeometry(.12,16),new THREE.MeshBasicMaterial({color:0}),6.2,1.5,-1.39); // le petit trou
 add(K,new THREE.CylinderGeometry(.08,.1,.4,12),M(0x2a2a30,.4,.6),6.4,1.2,0);
 add(K,BX(1.8,.08,.9),mWood,-2.5,.75,1.5);[-1.3,-3.7].forEach(x=>[1.1,1.9].forEach(z=>add(K,BX(.08,.75,.08),mWood,x+.3,.37,z)));
-candle(K,-2.2,.79,1.5);candle(K,-2.9,.79,1.4,.8);
-add(K,BX(1.4,1.1,.8),mStone,-3.5,.55,-1);const fire=new THREE.PointLight(0xff7a20,2.2,9,2);fire.position.set(-3.1,.7,-1);K.add(fire);flames.push(fire);
+candle(K,-2.2,.79,1.5);candle(K,-2.9,.79,1.4,4);
+add(K,BX(1.4,1.1,.8),mStone,-3.5,.55,-1);const fire=new THREE.PointLight(0xff7a20,10,12,2);fire.userData.b=10;fire.position.set(-3.1,.7,-1);K.add(fire);flames.push(fire);
 add(K,new THREE.SphereGeometry(.3,10,8),new THREE.MeshBasicMaterial({color:0xff7a20}),-3.2,.5,-1).castShadow=false;
-const moon=new THREE.DirectionalLight(0x7f95d0,1.1);moon.position.set(9,7,4);moon.castShadow=true;moon.shadow.mapSize.set(2048,2048);
+const moon=new THREE.DirectionalLight(0x9fb4e8,3.6);moon.position.set(9,7,4);moon.castShadow=true;moon.shadow.mapSize.set(2048,2048);
 Object.assign(moon.shadow.camera,{left:-9,right:9,top:9,bottom:-9,far:30});moon.shadow.radius=4;K.add(moon);
-K.add(new THREE.HemisphereLight(0x4a5878,0x201810,.55));
-const cabL=new THREE.PointLight(0xffb070,1.4,6,2);cabL.position.set(6.3,2.2,.6);K.add(cabL);
+K.add(new THREE.HemisphereLight(0x7a8ab0,0x302418,2.6),new THREE.AmbientLight(0x909098,1.4));K.add(Object.assign(new THREE.PointLight(0xffe0b0,14,14,2),{position:new THREE.Vector3(-1,2.8,.5)}));
+const cabL=new THREE.PointLight(0xffb070,6,8,2);cabL.position.set(6.3,2.2,.6);K.add(cabL);
 // tablettes en bois + vis (dévissables) + supports muraux
 const plank=x=>{const b=new THREE.Group();add(b,BX(2.4,.05,.35),mWood);
   b.screws=[-.5,.5].map(dx=>{const s=new THREE.Group();s.position.set(dx,.03,0);add(s,new THREE.CylinderGeometry(.037,.037,.015,12),M(0x9a9a9a,.3,.9),0,.05,0);add(s,new THREE.CylinderGeometry(.012,.012,.1,8),M(0x777777,.3,.9),0,0,0);b.add(s);return s});
@@ -98,14 +98,14 @@ const NK=new THREE.Group();add(NK,new THREE.TorusGeometry(.12,.004,6,40),M(0xd4a
 for(let i=0;i<26;i++){const a=i/26*2*PI;add(NK,new THREE.IcosahedronGeometry(i%5?.012:.022,1),new THREE.MeshStandardMaterial({color:0xffffff,roughness:.02,metalness:.2,emissive:0x8fc0ff,emissiveIntensity:.6}),Math.cos(a)*.12,Math.sin(a)*.12,0)}
 const nkL=new THREE.PointLight(0xaad4ff,.8,2);NK.add(nkL);NK.position.set(6.4,1.5,0);K.add(NK);
 const child=person({s:.6,top:0xf0ead8,bot:0x5a4a3a,hair:0x4a3020});child.root.traverse(o=>0);K.add(child.root);
-const mother=person({s:.9,top:0x8a6a4a,dress:0x4a5a7a,hair:0x2a1a10});mother.root.position.set(.55,0,.4);mother.root.rotation.y=PI/2;K.add(mother.root);
+const mother=person({s:.9,top:0x8a6a4a,dress:0x4a5a7a,hair:0x2a1a10});mother.root.position.set(-2.5,0,.7);mother.root.rotation.y=0;K.add(mother.root);
 
 /* ===== TABLE ===== */
 add(TB,BX(14,.2,10),mStone,0,-.1,0);add(TB,BX(14,5,.3),mStone,0,2.5,-2.6);add(TB,BX(3,2.4,.05),M(0x6a1620,1),0,2.2,-2.4);
 add(TB,BX(2.4,.08,1.1),mWood,0,.78,0);[-1,1].forEach(x=>[-.4,.4].forEach(z=>add(TB,BX(.08,.75,.08),mWood,x,.37,z)));
-candle(TB,-.2,.82,0,1.5);candle(TB,.5,.82,.1,1.2);add(TB,new THREE.CylinderGeometry(.04,.03,.12,10),M(0xd4a83a,.3,1),.1,.88,-.2);
-TB.add(new THREE.HemisphereLight(0x556080,0x201810,.45));
-const dl=new THREE.SpotLight(0xffd0a0,60,12,.8,.6);dl.position.set(0,3.5,2.5);dl.target.position.set(0,1,-.5);TB.add(dl,dl.target);
+candle(TB,-.2,.82,0,7);candle(TB,.5,.82,.1,6);add(TB,new THREE.CylinderGeometry(.04,.03,.12,10),M(0xd4a83a,.3,1),.1,.88,-.2);
+TB.add(new THREE.HemisphereLight(0x8090b0,0x302418,2.6),new THREE.AmbientLight(0x908898,1.4));const fl=new THREE.PointLight(0xffd8b0,12,10,2);fl.position.set(0,1.7,1.6);TB.add(fl);
+const dl=new THREE.SpotLight(0xffd8b0,220,14,.9,.6);dl.position.set(0,3.5,2.5);dl.target.position.set(0,1,-.5);TB.add(dl,dl.target);
 const count=person({s:.9,top:0x1b2a5c,wig:1,skin:0xf0cfb4});count.root.position.set(-.55,.5,-.95);
 const contessa=person({s:.9,top:0x7a1f3d,dress:0x7a1f3d,wig:1,skin:0xf2d4bc});contessa.root.position.set(.55,.5,-.95);
 const chev=person({s:.9,top:0x222222,hair:0x111111,hat:1});chev.root.position.set(.1,.5,.95);chev.root.rotation.y=PI;
@@ -114,7 +114,7 @@ const chev=person({s:.9,top:0x222222,hair:0x111111,hat:1});chev.root.position.se
 
 /* ===== TABLEAU D'ENQUÊTE ===== */
 add(BD,BX(26,14,.3),new THREE.MeshStandardMaterial({map:ctex(128,128,(g,w,h)=>{g.fillStyle='#8a6a48';g.fillRect(0,0,w,h);for(let i=0;i<900;i++){g.fillStyle=`rgba(${60+Math.random()*60|0},40,20,.25)`;g.fillRect(Math.random()*w,Math.random()*h,2,2)}},4,3),roughness:1}),0,0,-.2);
-const bdL=new THREE.SpotLight(0xffe0b0,260,30,.55,.7);bdL.position.set(0,2,10);BD.add(bdL,bdL.target);BD.add(new THREE.AmbientLight(0x554433,.5));
+const bdL=new THREE.SpotLight(0xffe8c0,600,40,.6,.6);bdL.position.set(0,2,10);BD.add(bdL,bdL.target);BD.add(new THREE.AmbientLight(0x998877,2.4));
 const reveal=[];
 function card(txt,x,y,w,h,rot,col,photo,t0){
   const g=new THREE.Group(),tx=ctex(256,Math.round(256*h/w),(c,W,H)=>{c.fillStyle=col;c.fillRect(0,0,W,H);if(photo){c.fillStyle='#777';c.fillRect(20,16,W-40,H*.62);c.fillStyle='#333';c.beginPath();c.arc(W/2,H*.32,30,0,7);c.fill();c.fillRect(W/2-52,H*.46,104,H*.3)}
@@ -128,6 +128,60 @@ function wire(a,b,t0){const d=new THREE.Vector3().subVectors(b,a),m=new THREE.Me
 [[pR,pC],[pR,pK],[pR,pH],[pR,pL],[pR,pF],[pC,pK],[pH,pL]].forEach((w,i)=>wire(w[0],w[1],56+i*.25));
 const stamp=new THREE.Mesh(new THREE.PlaneGeometry(4,1.3),new THREE.MeshBasicMaterial({transparent:true,map:ctex(512,160,(c,W,H)=>{c.strokeStyle=c.fillStyle='#c0141c';c.lineWidth=10;c.strokeRect(8,8,W-16,H-16);c.font='bold 100px Impact,sans-serif';c.textAlign='center';c.fillText('SUSPECT',W/2,H-38)})}));
 stamp.position.set(0,-.4,.2);stamp.rotation.z=-.22;stamp.visible=false;BD.add(stamp);
+
+/* ===== BIJOUTIER : Raoul vend le collier, la mère n'en sait rien ===== */
+const JW=new THREE.Group(),LT=new THREE.Group();scene.add(JW,LT);JW.visible=LT.visible=false;
+const own=(g,o)=>{if(o.parent!==g)g.add(o)},gold=M(0xe0b030,.25,.9),yrEl=$('year');
+add(JW,BX(12,.2,8),mWood,0,-.1,-1);add(JW,BX(12,4,.3),mWood,0,2,-2.6);
+for(let i=0;i<3;i++){add(JW,BX(5,.05,.3),mWood,0,1.3+i*.7,-2.4);for(let j=0;j<8;j++)add(JW,BX(.25,.18,.2),M(j%2?0x6a1a1a:0x1a2a5a,.6),-2.1+j*.6,1.42+i*.7,-2.4)}
+add(JW,BX(3.2,.75,.8),mWood,0,.375,-.1);add(JW,BX(3.3,.06,.9),M(0x3a2410,.4),0,.75,-.1); // comptoir (dessus à y=.78)
+JW.add(new THREE.HemisphereLight(0x9a90a0,0x302418,2.4),new THREE.AmbientLight(0xa09080,1.2));
+const jl=new THREE.PointLight(0xffd29a,14,12,2);jl.position.set(0,2.5,.8);JW.add(jl);
+const jw=person({s:.9,top:0x3a2a20,hair:0xcccccc,skin:0xe3b48e});jw.root.position.set(0,0,-.7);JW.add(jw.root);
+add(jw.head,new THREE.CylinderGeometry(.035,.035,.04,12),M(0x222222,.3,.8),.045,.17,.145).rotation.x=PI/2; // loupe
+const coins=[];for(let i=0;i<45;i++){const c=add(JW,new THREE.CylinderGeometry(.04,.04,.008,12),gold,.25+(Math.random()-.5)*.35,.784+Math.floor(i/9)*.01,.05+(Math.random()-.5)*.25);c.visible=false;coins.push(c)}
+const notes=[0,1,2,3].map(i=>{const n=add(JW,BX(.2,.005,.1),M(0xd9d0a8,.9),-.35,.783+i*.006,.1);n.rotation.y=(i-1.5)*.15;n.visible=false;return n});
+const pouch=add(JW,new THREE.SphereGeometry(.1,12,10),M(0x5a3a1c,.8),0,.86,.15);pouch.scale.y=.8;pouch.visible=false;
+function jeweler(t){
+  own(JW,child.root);own(JW,NK);const c=child,j=jw,out=sm(k(t,43,44.1));
+  c.root.position.set(0,.52,L(.8,3,out));c.root.rotation.y=L(PI,0,sm(k(t,42.8,43.4)));stand(c,out>0?1:0);
+  if(out===0){c.sh.forEach(s=>s.rotation.x=-L(1.2,2.6,1-sm(k(t,34.6,35.8))));c.el.forEach(e=>e.rotation.x=-.2)}
+  if(t>41.8&&t<43)c.sh.forEach(s=>s.rotation.x=-1.0-Math.sin((t-41.8)*5)*.2); // il ramasse l'argent
+  face(c,0);
+  const ex=sm(k(t,35.8,36.6)),jb=t>39.2&&t<40.4?Math.sin(PI*k(t,39.2,40.4)):0;
+  stand(j,0);j.root.position.y=-.6*jb;j.body.rotation.x=t<39?.18*ex:0;
+  j.sh.forEach(s=>s.rotation.x=-ex);j.el.forEach(e=>e.rotation.x=-.9*ex-.2);j.head.rotation.x=.3*ex;if(t>41.4&&t<42.6)j.sh[1].rotation.x=-1.3;
+  face(j,0,t>37.2&&t<39?.5:0,(t>37.5&&t<38.5)||(t>40.3&&t<41.5)?1:0);
+  NK.visible=t<42.6;
+  if(t<35.2){c.root.updateMatrixWorld(true);c.hands[1].g.getWorldPosition(V);NK.position.copy(V);NK.rotation.set(0,t,0)}
+  else if(t<41.5){NK.position.set(0,.8,.42);NK.rotation.set(-PI/2,0,t*.3)}
+  else{j.root.updateMatrixWorld(true);j.hands[1].g.getWorldPosition(V);NK.position.set(0,.8,.42).lerp(V,sm(k(t,41.5,42.4)));NK.rotation.set(0,0,0)}
+  const m=t<41.8?k(t,40.4,41.4):1-k(t,41.8,43); // l'argent apparaît puis Raoul le prend
+  coins.forEach((q,i)=>q.visible=i<45*m);notes.forEach((n,i)=>n.visible=m>(i+1)/5);pouch.visible=t>40.3&&t<42.2;
+}
+const SJ=[[T1,36,[-.9,1.35,2.2],[-.6,1.2,1.7],[0,.85,.5],[0,.85,.4]],[36,39.4,[.9,1.2,1.2],[.5,1.1,.9],[0,.9,-.2],[0,.85,.3]],[39.4,T2+.2,[0,1.1,2.3],[0,1,1.7],[0,.85,.4],[0,.85,.4]]];
+/* ===== LETTRES : 1885 → 1892, Raoul glisse l'argent dans des lettres pour sa mère ===== */
+add(LT,BX(10,.2,8),mWood,0,-.1,-1);add(LT,BX(10,4,.3),mWood,0,2,-2.6);add(LT,BX(1.2,1.4,.05),new THREE.MeshBasicMaterial({color:0x8fa8d8}),-2.2,2,-2.42);
+add(LT,BX(2,.06,.9),mWood,0,.78,-.2);[-.9,.9].forEach(x=>[-.55,.15].forEach(z=>add(LT,BX(.07,.78,.07),mWood,x,.39,z)));
+add(LT,BX(.5,.05,.5),mWood,0,.45,-.95);add(LT,BX(.5,.6,.05),mWood,0,.8,-1.2);
+add(LT,BX(.5,.3,.35),M(0x4a2c14,.7),-.75,.96,-.2);const mound=add(LT,new THREE.SphereGeometry(.2,12,8),gold,-.75,1.1,-.2);mound.scale.y=.4;
+candle(LT,.8,.81,-.5,6);LT.add(new THREE.HemisphereLight(0x8a90b0,0x302418,2.2),new THREE.AmbientLight(0x908090,1.2));
+const ll=new THREE.PointLight(0x7a98e0,8,9,2);ll.position.set(-2.2,2,-1.5);const gl=new THREE.PointLight(0xffd060,3,3,2);gl.position.set(-.75,1.3,-.1);LT.add(ll,gl);
+const envM=new THREE.MeshStandardMaterial({map:ctex(128,86,(c,W,H)=>{c.fillStyle='#efe4c8';c.fillRect(0,0,W,H);c.fillStyle='#3a2a1a';c.font='italic 22px Georgia';c.textAlign='center';c.fillText('À Maman',W/2,H/2+8)}),roughness:.9});
+const envs=[];for(let i=0;i<17;i++){const e=add(LT,BX(.3,.012,.2),envM,.75,.81+i*.013,-.2);e.rotation.y=(Math.random()-.5)*.3;e.visible=false;envs.push(e)}
+const cur=envs[16],bill=add(LT,BX(.12,.004,.06),M(0xd9d0a8,.9),0,0,0);bill.visible=false;
+function letters(t){
+  own(LT,child.root);const c=child,kk=Math.max(0,t-LS),idx=Math.min(15,Math.floor(kk/.85)),u=kk/.85-Math.floor(kk/.85);
+  c.root.scale.setScalar(L(.62,.92,Math.min(kk/13.6,1))); // Raoul grandit au fil des années
+  c.root.position.set(0,.5,-.95);c.root.rotation.y=0;sit(c);
+  c.sh[0].rotation.set(-.9,0,-.6*Math.sin(PI*k(u,0,.35)));c.sh[1].rotation.set(-.9,0,.3*Math.sin(PI*k(u,.55,.85)));c.head.rotation.x=.4;face(c,0);
+  envs.forEach((e,i)=>e.visible=i<16&&i<idx+(u>.9?1:0));
+  cur.visible=u<.9;cur.position.set(L(0,.75,sm(k(u,.8,.9))),.81,-.2);cur.scale.y=1+k(u,.3,.5);
+  const b=sm(k(u,.1,.45));bill.visible=u>.1&&u<.45;bill.position.set(L(-.75,0,b),L(.99,.83,b)+Math.sin(PI*b)*.1,-.2);
+  yrEl.textContent=1885+Math.min(7,Math.floor(kk/1.7));yrEl.style.opacity=k(t,LS-.5,LS)*(1-k(t,T3-1.3,T3-.2));
+  camAt(t,SL);
+}
+const SL=[[T2,LS+7,[.9,1.5,2.7],[.4,1.4,2.2],[0,.95,-.4],[0,.95,-.4]],[LS+7,T3+1,[-.4,1.3,1.8],[0,1.2,1.5],[0,.9,-.4],[.2,.88,-.3]]];
 
 /* ---------- Audio (Web Audio API, tout est synthétisé) ---------- */
 let AC,lp,out,NB,mg;
@@ -152,8 +206,23 @@ const SFX={
   paper:()=>{nz(.25,2500,5000,.15,'bandpass',.7);tn(2400,.05,.05,'square')},
   thud:()=>{tn(80,.5,.7,'sine',35);nz(.25,400,100,.5,'lowpass',1)},
   laugh:()=>[0,1,2,3,4].forEach(i=>{tn(230,.16,.1,'sawtooth',170,i*.22);tn(460,.16,.04,'square',340,i*.22)}),
+  coin:()=>{tn(3200+Math.random()*1500,.25,.08,'sine');tn(5200,.2,.04,'sine')},
   crackle:()=>nz(.03,3000,1500,.08+Math.random()*.08,'bandpass',1)};
-function say(txt,pitch,rate){try{const u=new SpeechSynthesisUtterance(txt);u.lang='fr-FR';u.pitch=pitch;u.rate=rate;const v=speechSynthesis.getVoices().find(v=>v.lang.startsWith('fr'));if(v)u.voice=v;speechSynthesis.speak(u)}catch(e){}}
+const SUB=$('sub');let subT;
+function sub(txt,ms){SUB.textContent=txt;SUB.style.opacity=1;clearTimeout(subT);subT=setTimeout(()=>SUB.style.opacity=0,ms)}
+function babble(txt,pitch){ // voix de secours synthétisée (voyelles à formants), passe par le filtre « oreilles bouchées »
+  const F={a:[800,1200],e:[500,1800],i:[300,2300],o:[500,900],u:[350,700],y:[300,2200]},f0=70+pitch*80;let d=0;
+  for(const ch of txt.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()){
+    if(F[ch]){const n=AC.currentTime+d,o=AC.createOscillator(),g=AC.createGain();o.type='sawtooth';o.frequency.setValueAtTime(f0*(1+.08*Math.sin(d*5)),n);
+      g.gain.setValueAtTime(0,n);g.gain.linearRampToValueAtTime(.9,n+.02);g.gain.linearRampToValueAtTime(0,n+.12);o.connect(g);
+      F[ch].forEach(fr=>{const b=AC.createBiquadFilter();b.type='bandpass';b.frequency.value=fr;b.Q.value=7;g.connect(b);b.connect(out)});o.start(n);o.stop(n+.13);d+=.11}
+    else if(ch===' ')d+=.08;else{setTimeout(()=>nz(.04,2500,1500,.15,'bandpass',1),d*1000);d+=.05}}}
+function say(txt,pitch,rate,ms=2500){
+  sub(txt,ms);let ok=false;
+  try{const ss=window.speechSynthesis;if(ss){const u=new SpeechSynthesisUtterance(txt);u.lang='fr-FR';u.pitch=pitch;u.rate=rate;u.volume=1;
+    const v=ss.getVoices().find(v=>v.lang&&v.lang.startsWith('fr'));if(v)u.voice=v;u.onerror=()=>babble(txt,pitch);ss.speak(u);ok=true;
+    setTimeout(()=>{if(!ss.speaking)babble(txt,pitch)},500)}}catch(e){}
+  if(!ok)babble(txt,pitch)}
 
 /* ---------- Physique simple des objets (gravité + rebond, intégré pas à pas) ---------- */
 function toss(tau,p0,v0){let[x,y,z]=p0,vx=v0[0],vy=0,vz=v0[2];for(let i=0;i<tau*120;i++){vy-=9.8/120;x+=vx/120;y+=vy/120;z+=vz/120;if(y<.03){y=.03;vy=-vy*.3;vx*=.6;vz*=.6;if(Math.abs(vy)<.3)vy=0}}return[x,y,z]}
@@ -172,8 +241,7 @@ function cs(t){ // x,z,y,yaw,pit,w(marche),uw(dévissage)
   else if(t>=23.5&&t<24.4){const u=sm(k(t,23.5,24.4));x=5.8;z=0;y=1.29;pit=L(.45,1.35,u);yaw=L(PI/2,-PI/2,u);cr=-1}
   else if(t>=24.4&&t<27.4){x=L(5.8,3.2,k(t,24.4,27.4));z=0;y=1.29;pit=1.35;cr=1;yaw=-PI/2}
   else if(t>=27.4&&t<28.6){const u=sm(k(t,27.4,28.6));x=L(3.2,2.4,u);z=0;y=L(1.29,.52,u);pit=1.35*(1-u);yaw=-PI/2}
-  else if(t>=28.6&&t<30.2){const u=sm(k(t,28.6,30.2));x=L(2.4,1.45,u);z=L(0,.4,u);yaw=-PI/2;w=1}
-  else if(t>=30.2){x=1.45;z=.4;yaw=-PI/2}
+  else if(t>=28.6){const u=k(t,28.6,31);x=2.4;z=L(0,3.4,u);yaw=L(-PI/2,0,sm(k(t,28.6,29.3)));w=1} // il repart discrètement
   return{x,z,y,yaw,pit,w,uw,cr}}
 const hold=(s,dy=0)=>[s.x+Math.sin(s.yaw)*.3,.5+dy,s.z+Math.cos(s.yaw)*.3];
 const V=new THREE.Vector3();
@@ -184,8 +252,7 @@ function kitchen(t){
     c.hands.forEach((h,i)=>{h.g.rotation.y=Math.sin(t*9+i*3)*.8});curl(c,0,1);curl(c,1,1)}else c.hands.forEach(h=>h.g.rotation.y=0);
   if(t>=8&&t<13.5&&!s.uw){c.sh.forEach(q=>q.rotation.x=-1.1);c.el.forEach(e=>e.rotation.x=-.8)} // porte les tablettes
   if(t>=22&&t<23.3){c.sh[1].rotation.x=-2.1-s.pit;c.el[1].rotation.x=-.3;curl(c,1,1)}
-  if(t>=30.3&&t<32.4){c.sh[1].rotation.x=-1.6;c.sh[0].rotation.x=-.2;c.el[1].rotation.x=-.2;curl(c,1,0)} // tend le collier
-  face(c,0,0,t>30.3&&t<31.6?1:0);
+  face(c,0,0,0);
   // tablettes : dévissage (vis qui tournent et sortent), chute avec rebond, transport, pont
   const sc=(P,t0)=>P.screws.forEach((v,i)=>{const p=k(t,t0+i*1.3,t0+i*1.3+1.3);v.rotation.y=p*22;v.position.y=.03+p*.1});
   sc(A,1);sc(B,5.4);
@@ -206,12 +273,11 @@ function kitchen(t){
   // balancement du pont quand l'enfant avance dessus
   const onB=t>=14.5&&t<27.4?Math.sin(t*3)*.004:0;if(t>=13.5)[A,B].forEach(b=>b.rotation.z=onB);
   // collier
-  NK.rotation.y=t*.8;NK.visible=t<23.3||t>=30.2;
+  NK.rotation.y=t*.8;NK.visible=t<23.3;
   if(t>=22&&t<23.3){c.root.updateMatrixWorld(true);c.hands[1].g.getWorldPosition(V);NK.position.copy(V)}
-  else if(t>=30.2){c.root.updateMatrixWorld(true);mother.root.updateMatrixWorld(true);(t<32.2?c.hands[1].g:mother.hands[1].g).getWorldPosition(V);NK.position.copy(V)}
   else NK.position.set(6.4,1.5,0);
   // mère
-  stand(mother,0);const mu=sm(k(t,31.2,32.2));mother.sh[1].rotation.x=-1.2*mu;mother.sh[0].rotation.x=-.2;mother.el[1].rotation.x=-.3;face(mother,0,k(t,30.4,31.4)*.4*(1-mu*.5));
+  stand(mother,0);mother.sh.forEach((q,i)=>q.rotation.x=-1.0+Math.sin(t*3+i)*.15);mother.el.forEach(e=>e.rotation.x=-1.0);face(mother,0); // elle pétrit, sans rien voir
 }
 function tableScene(t){
   stand(mother,0);
@@ -234,12 +300,11 @@ const S=[
  [14.5,21,[3.6,1.9,3.2],[6,1.7,3],[3.5,1.1,0],[6,1.1,0]],
  [21,24,[6.3,1.5,1.5],[6.2,1.45,1.2],[6.3,1.3,0],[6.3,1.3,0]],
  [24,28,[5.5,2.2,3.5],[3.5,1.7,3.3],[4.5,1.1,0],[3.2,1,0]],
- [28,31,[1.2,1.0,2.0],[1.2,.8,1.5],[1.1,.5,.3],[1.1,.55,.3]],
- [31,34.4,[1.1,.7,1.0],[1.1,.65,.8],[1.1,.55,.4],[1.1,.55,.4]],
+ [28,34.4,[.3,1.5,3.8],[.9,1.4,3.9],[2.0,.5,.8],[2.3,.5,2.4]],
  [34.4,45,[0,1.45,3.2],[-.2,1.3,2.3],[0,1,-.8],[-.2,1.1,-.8]],
  [45,51.6,[-.55,1.35,.6],[-.55,1.32,.1],[-.55,1.3,-.95],[-.55,1.28,-.95]],
  [51.6,70,[0,0,12],[0,0,4.2],[0,0,0],[0,0,0]]];
-function camAt(t){const s=S.find(a=>t>=a[0]&&t<a[1])||S[S.length-1],u=sm(k(t,s[0],s[1]));
+function camAt(t,A=S){const s=A.find(a=>t>=a[0]&&t<a[1])||A[A.length-1],u=sm(k(t,s[0],s[1]));
   cam.position.set(...s[2].map((v,i)=>L(v,s[3][i],u)));cam.position.y+=Math.sin(t*1.3)*.008;cam.lookAt(...s[4].map((v,i)=>L(v,s[5][i],u)))}
 
 /* ---------- Événements sonores / voix (temps en secondes) ---------- */
@@ -247,36 +312,41 @@ const E=[];const ev=(t,f)=>E.push([t,f]);
 ev(.5,()=>mg.gain.value=.05);
 [1,2.3,5.4,6.7].forEach(t=>ev(t,SFX.screw));ev(3.6,()=>SFX.wood());ev(7.6,()=>SFX.wood());ev(4.5,()=>SFX.wood(.7));
 [4.95,5.2,5.4].forEach((t,i)=>ev(t,()=>SFX.wood(.5/(i+1))));ev(8.6,()=>SFX.wood(.5));ev(9,()=>SFX.wood(.4));
-for(let t=9.2;t<12;t+=.38)ev(t,SFX.step);for(let t=28.7;t<30.2;t+=.38)ev(t,SFX.step);
+for(let t=9.2;t<12;t+=.38)ev(t,SFX.step);for(let t=28.7;t<31;t+=.38)ev(t,SFX.step);
 ev(12.9,()=>SFX.wood());ev(13.3,()=>SFX.wood(.8));ev(14,SFX.creak);
 for(let t=14.6;t<21;t+=.62){ev(t,SFX.hand);ev(t+.3,SFX.hand)}for(let t=15;t<21;t+=1.4)ev(t,SFX.creak);
 for(let t=24.5;t<27.4;t+=.45){ev(t,SFX.hand);ev(t+.22,SFX.hand)}ev(25,SFX.creak);ev(26.3,SFX.creak);
-ev(22.6,SFX.gems);ev(23.1,SFX.cloth);ev(23.4,SFX.cloth);ev(30.6,SFX.gems);
-ev(30.4,()=>say('Tiens maman !',2,1.05));
-ev(36.9,()=>say('Le chevalier Floriani…',.55,.8));ev(40.4,()=>say('Ce petit avait tendu une main',.55,.9));
-ev(44,()=>say('Deux mains !',.8,1.1));ev(44.9,SFX.laugh);
-for(let t=53.4;t<56;t+=.4)ev(t,SFX.paper);for(let t=56;t<58;t+=.25)ev(t,()=>tn(500,.15,.05,'triangle',300));ev(57,SFX.thud);
+ev(22.6,SFX.gems);ev(23.1,SFX.cloth);ev(23.4,SFX.cloth);
+ev(37.4,()=>say('Mon Dieu…',.7,.85,1800));ev(40.2,()=>say('Tiens, mon petit.',.7,.9,2000));ev(35.2,()=>SFX.wood(.3));
+for(let i=0;i<20;i++)ev(40.4+i*.05,SFX.coin);for(let i=0;i<8;i++)ev(41.9+i*.1,SFX.coin);ev(42,SFX.cloth);
+for(let i=0;i<16;i++){ev(LS+i*.85+.15,SFX.coin);ev(LS+i*.85+.45,SFX.paper);ev(LS+i*.85+.75,SFX.hand)}
+ev(OFF+36.9,()=>say('Le chevalier Floriani…',.55,.8));ev(OFF+40.4,()=>say('Ce petit avait tendu une main',.55,.9));
+ev(OFF+44,()=>say('Deux mains !',.8,1.1));ev(OFF+44.9,SFX.laugh);
+for(let t=OFF+53.4;t<OFF+56;t+=.4)ev(t,SFX.paper);for(let t=OFF+56;t<OFF+58;t+=.25)ev(t,()=>tn(500,.15,.05,'triangle',300));ev(OFF+57,SFX.thud);
 E.sort((a,b)=>a[0]-b[0]);
 
 /* ---------- Boucle principale ---------- */
-const END=66,fade=$('fade');let clock=0,last=0,running=false,over=false;
+const END=66+OFF,fade=$('fade');let clock=0,last=0,running=false,over=false;
 function frame(t,dt){
-  T=t;let f=0;
-  K.visible=t<34.4;TB.visible=t>=34.4&&t<51.6;BD.visible=t>=51.6;
-  if(t<34.4){kitchen(t);f=Math.max(1-k(t,.2,1.8),k(t,32.7,34.2))}
-  else if(t<51.6){tableScene(t);f=Math.max(1-k(t,34.5,37),k(t,49.5,51.2))}
-  else{boardScene(t);f=Math.max(1-k(t,52,54),k(t,63.5,65.5))}
-  fade.style.opacity=f;camAt(t);
-  flames.forEach((l,i)=>l.intensity=(i?1:1.3)*(.85+Math.sin(t*13+i*2)*.08+Math.random()*.08));
-  if(t<51&&Math.random()<dt*6)SFX.crackle();
-  lp.frequency.value=t>=34.4&&t<44?250*Math.pow(80,k(t,34.5,44)):20000; // oreilles bouchées → net (volume constant)
-  mg.gain.value=t<.5?0:.05+.13*k(t,50,60)*(t<64?1:1-k(t,64,66));
+  let f=0;const q=t-OFF;T=t;
+  K.visible=t<T1;JW.visible=t>=T1&&t<T2;LT.visible=t>=T2&&t<T3;TB.visible=t>=T3&&q<51.6;BD.visible=q>=51.6;
+  if(t<T1){kitchen(t);camAt(t);f=Math.max(1-k(t,.2,1.8),k(t,30,31.4))}
+  else if(t<T2){jeweler(t);camAt(t,SJ);f=Math.max(1-k(t,T1+.2,T1+1.7),k(t,T2-1.5,T2-.1))}
+  else if(t<T3){letters(t);f=Math.max(1-k(t,T2+.2,T2+1.6),k(t,T3-1.5,T3-.1))}
+  else if(q<51.6){T=q;tableScene(q);camAt(q);f=Math.max(1-k(q,34.5,37),k(q,49.5,51.2))}
+  else{T=q;boardScene(q);camAt(q);f=Math.max(1-k(q,52,54),k(q,63.5,65.5))}
+  if(t<T2)yrEl.style.opacity=0;
+  fade.style.opacity=f;
+  flames.forEach((l,i)=>l.intensity=l.userData.b*(.85+Math.sin(t*13+i*2)*.08+Math.random()*.08));
+  if(q<51&&Math.random()<dt*6)SFX.crackle();
+  lp.frequency.value=t>=T3&&q<44?250*Math.pow(80,k(q,34.5,44)):20000; // oreilles bouchées → net (volume constant)
+  const qq=Math.max(q,0);mg.gain.value=t<.5?0:.05+.13*k(qq,50,60)*(qq<64?1:1-k(qq,64,66));
 }
 function loop(now){if(!running)return;requestAnimationFrame(loop);const dt=Math.min((now-last)/1000,.1);last=now;clock+=dt;
   while(E.length&&E[0][0]<=clock)E.shift()[1]();frame(Math.min(clock,END),dt);R.render(scene,cam);if(clock>=END)finish()}
-function finish(){running=false;over=true;speechSynthesis.cancel();setTimeout(()=>AC.close(),500);$('stage').remove();fade.remove();document.body.style.overflow='auto';$('site').style.display='block'}
+function finish(){running=false;over=true;speechSynthesis.cancel();setTimeout(()=>AC.close(),500);$('stage').remove();SUB.remove();yrEl.remove();fade.remove();document.body.style.overflow='auto';$('site').style.display='block'}
 
 /* ---------- Démarrage : chargement → « Mettez du son » → cinématique (non skippable) ---------- */
 ['keydown','keyup','contextmenu','wheel','touchmove','dragstart'].forEach(e=>addEventListener(e,ev=>{if(running)ev.preventDefault()},{passive:false}));
 setTimeout(()=>{R.compile(scene,cam);$('load').style.display='none';$('start').style.display='flex'},50);
-$('go').onclick=()=>{aInit();$('start').remove();running=true;last=performance.now();requestAnimationFrame(loop)};
+$('go').onclick=()=>{aInit();try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.getVoices();speechSynthesis.speak(u)}catch(e){}$('start').remove();running=true;last=performance.now();requestAnimationFrame(loop)};
