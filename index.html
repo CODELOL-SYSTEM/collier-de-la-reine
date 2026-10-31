@@ -6,17 +6,20 @@
 html,body{margin:0;height:100%;background:#000;overflow:hidden;font-family:Georgia,serif;color:#e8dcc0}
 #stage{position:fixed;inset:0;touch-action:none}
 #stage canvas{display:block;pointer-events:none}
-.ov{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;background:#000;z-index:5;font-size:clamp(20px,4vw,36px);text-align:center}
+.ov{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;background:#000;z-index:7;font-size:clamp(20px,4vw,36px);text-align:center}
 #start{display:none}
 #fade{position:fixed;inset:0;background:#000;opacity:1;pointer-events:none;z-index:4}
+#bars i{position:fixed;left:0;right:0;height:6vh;background:#000;z-index:5;pointer-events:none}
+#bars i:first-child{top:0}#bars i:last-child{bottom:0}
 #go{font:inherit;font-size:.8em;padding:.6em 1.6em;background:none;color:inherit;border:1px solid #b89b5e;cursor:pointer;letter-spacing:.1em}
 #go:hover{background:#b89b5e;color:#000}
 #site{display:none;position:fixed;inset:0;background:#000;align-items:center;justify-content:center;text-align:center;padding:24px;box-sizing:border-box;font-size:clamp(20px,4vw,36px);line-height:1.5;color:#e8dcc0;z-index:3}
-#year{position:fixed;top:5%;left:0;right:0;text-align:center;font:clamp(36px,8vw,90px) Georgia,serif;color:#e8d090;text-shadow:0 3px 10px #000;z-index:6;opacity:0;pointer-events:none;letter-spacing:.1em}
-#sub{position:fixed;left:0;right:0;bottom:8%;text-align:center;font:clamp(18px,3vw,30px) Georgia,serif;color:#fff;text-shadow:0 2px 6px #000;z-index:6;opacity:0;pointer-events:none;transition:opacity .2s}
+#year{position:fixed;top:9%;left:0;right:0;text-align:center;font:clamp(36px,8vw,90px) Georgia,serif;color:#e8d090;text-shadow:0 3px 10px #000;z-index:6;opacity:0;pointer-events:none;letter-spacing:.1em}
+#sub{position:fixed;left:0;right:0;bottom:9%;text-align:center;font:italic clamp(18px,3vw,30px) Georgia,serif;color:#fff;text-shadow:0 2px 6px #000,0 0 14px #000;z-index:6;opacity:0;pointer-events:none;transition:opacity .2s}
 </style></head><body>
 <div id="stage"></div>
 <div id="fade"></div>
+<div id="bars"><i></i><i></i></div>
 <div id="sub"></div>
 <div id="year"></div>
 <div class="ov" id="load">Chargement…</div>
@@ -24,6 +27,6 @@ html,body{margin:0;height:100%;background:#000;overflow:hidden;font-family:Georg
 
 <div id="site">Merci d'avoir regardé cette courte animation,<br>vous pouvez fermer la page.</div>
 
-<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <script type="module" src="app.js"></script>
 </body></html>
