@@ -16,10 +16,25 @@ const cam=new THREE.PerspectiveCamera(48,1,.05,80);
 const resize=()=>{R.setSize(innerWidth,innerHeight);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix()};
 addEventListener('resize',resize);resize();
 
-/* ---------- Matériaux procéduraux ---------- */
-const stone=ctex(256,256,(g,w,h)=>{g.fillStyle='#4a443c';g.fillRect(0,0,w,h);for(let y=0;y<4;y++)for(let x=-1;x<4;x++){g.fillStyle=`hsl(32,9%,${34+Math.random()*16}%)`;g.fillRect(x*64+(y%2)*32+2,y*64+2,60,60)}},4,2);
-const wood=ctex(128,128,(g,w,h)=>{g.fillStyle='#7a5230';g.fillRect(0,0,w,h);for(let i=0;i<40;i++){g.strokeStyle=`rgba(40,22,8,${Math.random()*.35})`;g.beginPath();g.moveTo(0,Math.random()*h);g.bezierCurveTo(40,Math.random()*h,90,Math.random()*h,w,Math.random()*h);g.stroke()}});
-const mStone=new THREE.MeshStandardMaterial({map:stone,roughness:.95}),mWood=new THREE.MeshStandardMaterial({map:wood,roughness:.8});
+/* ---------- Matériaux procéduraux (pierre + bois améliorés) ---------- */
+const stone=ctex(512,512,(g,w,h)=>{g.fillStyle='#2e2a25';g.fillRect(0,0,w,h);
+  for(let y=0;y<4;y++)for(let x=-1;x<5;x++){const X=x*128+(y%2)*64+4,Y=y*128+4;
+    g.fillStyle=`hsl(${28+Math.random()*10},${6+Math.random()*8}%,${34+Math.random()*16}%)`;g.fillRect(X,Y,120,120);
+    for(let i=0;i<260;i++){g.fillStyle=`rgba(${Math.random()<.5?'0,0,0':'255,255,255'},${Math.random()*.08})`;g.fillRect(X+Math.random()*120,Y+Math.random()*120,2,2)}}},4,2);
+const woodTex=(rx=1,ry=1)=>ctex(512,256,(g,w,h)=>{
+  g.fillStyle='#74492a';g.fillRect(0,0,w,h);
+  for(let b=0;b<4;b++){g.fillStyle=`hsla(${26+Math.random()*8},${42+Math.random()*15}%,${24+Math.random()*14}%,.6)`;g.fillRect(0,b*h/4,w,h/4)}
+  for(let i=0;i<260;i++){const y0=Math.random()*h,amp=1+Math.random()*3,fr=.01+Math.random()*.02,ph=Math.random()*7;
+    g.strokeStyle=Math.random()<.7?`rgba(30,15,5,${.05+Math.random()*.2})`:`rgba(190,140,80,${.05+Math.random()*.12})`;g.lineWidth=.5+Math.random()*1.5;
+    g.beginPath();for(let x=0;x<=w;x+=8){const y=y0+Math.sin(x*fr+ph)*amp;x?g.lineTo(x,y):g.moveTo(x,y)}g.stroke()}
+  for(let n=0;n<3;n++){const x=Math.random()*w,y=Math.random()*h;
+    for(let r=14;r>2;r-=2){g.strokeStyle=`rgba(30,14,4,${.35-r*.01})`;g.lineWidth=1.2;g.beginPath();g.ellipse(x,y,r*1.8,r*.7,0,0,7);g.stroke()}
+    g.fillStyle='rgba(25,10,3,.6)';g.beginPath();g.ellipse(x,y,4,2,0,0,7);g.fill()}
+  g.fillStyle='rgba(15,8,3,.7)';for(let b=1;b<4;b++)g.fillRect(0,b*h/4-1,w,2)},rx,ry);
+const wood=woodTex(1,1),woodBig=woodTex(5,3);
+const mStone=new THREE.MeshStandardMaterial({map:stone,bumpMap:stone,bumpScale:.6,roughness:.95});
+const mWood=new THREE.MeshStandardMaterial({map:wood,bumpMap:wood,bumpScale:.5,roughness:.65});
+const mWoodBig=new THREE.MeshStandardMaterial({map:woodBig,bumpMap:woodBig,bumpScale:.5,roughness:.7});
 
 /* ---------- Personnage articulé (squelette hiérarchique : hanches, genoux, épaules, coudes, doigts) ---------- */
 function person(o){
@@ -77,6 +92,9 @@ function candle(p,x,y,z,i=6){add(p,new THREE.CylinderGeometry(.025,.03,.18,10),M
 add(K,BX(18,.2,12),mStone,0,-.1,0);add(K,BX(18,4,.3),mStone,0,2,-3.15);add(K,BX(.3,4,6.6),mStone,-4,2,0);
 add(K,BX(.3,1,6.6),mStone,3,.5,0);add(K,BX(.3,1.8,6.6),mStone,3,3.1,0);add(K,BX(.3,1.2,2.6),mStone,3,1.6,-2);add(K,BX(.3,1.2,2.6),mStone,3,1.6,2);
 add(K,BX(.6,.06,1.4),mWood,3.1,.97,0);
+// cadre en bois autour du petit trou + lumière chaude qui y passe
+add(K,BX(.4,.1,1.6),mWood,3,2.15,0);[-.7,.7].forEach(z=>add(K,BX(.4,1.2,.1),mWood,3,1.6,z));
+const holeL=new THREE.PointLight(0xffc888,4,5,2);holeL.position.set(3.4,1.5,0);K.add(holeL);
 add(K,BX(2.8,.2,3),mWood,6.6,.9,0);add(K,BX(2.8,2.6,.2),mStone,6.6,2.2,-1.5);add(K,BX(.2,2.6,3),mStone,8.1,2.2,0);add(K,BX(.8,1.4,.5),mWood,7.3,1.7,-1.1);
 add(K,new THREE.CircleGeometry(.12,16),new THREE.MeshBasicMaterial({color:0}),6.2,1.5,-1.39); // le petit trou
 add(K,new THREE.CylinderGeometry(.08,.1,.4,12),M(0x2a2a30,.4,.6),6.4,1.2,0);
@@ -132,7 +150,7 @@ stamp.position.set(0,-.4,.2);stamp.rotation.z=-.22;stamp.visible=false;BD.add(st
 /* ===== BIJOUTIER : Raoul vend le collier, la mère n'en sait rien ===== */
 const JW=new THREE.Group(),LT=new THREE.Group();scene.add(JW,LT);JW.visible=LT.visible=false;
 const own=(g,o)=>{if(o.parent!==g)g.add(o)},gold=M(0xe0b030,.25,.9),yrEl=$('year');
-add(JW,BX(12,.2,8),mWood,0,-.1,-1);add(JW,BX(12,4,.3),mWood,0,2,-2.6);
+add(JW,BX(12,.2,8),mWoodBig,0,-.1,-1);add(JW,BX(12,4,.3),mWoodBig,0,2,-2.6);
 for(let i=0;i<3;i++){add(JW,BX(5,.05,.3),mWood,0,1.3+i*.7,-2.4);for(let j=0;j<8;j++)add(JW,BX(.25,.18,.2),M(j%2?0x6a1a1a:0x1a2a5a,.6),-2.1+j*.6,1.42+i*.7,-2.4)}
 add(JW,BX(3.2,.75,.8),mWood,0,.375,-.1);add(JW,BX(3.3,.06,.9),M(0x3a2410,.4),0,.75,-.1); // comptoir (dessus à y=.78)
 JW.add(new THREE.HemisphereLight(0x9a90a0,0x302418,2.4),new THREE.AmbientLight(0xa09080,1.2));
@@ -161,7 +179,7 @@ function jeweler(t){
 }
 const SJ=[[T1,36,[-.9,1.35,2.2],[-.6,1.2,1.7],[0,.85,.5],[0,.85,.4]],[36,39.4,[.9,1.2,1.2],[.5,1.1,.9],[0,.9,-.2],[0,.85,.3]],[39.4,T2+.2,[0,1.1,2.3],[0,1,1.7],[0,.85,.4],[0,.85,.4]]];
 /* ===== LETTRES : 1885 → 1892, Raoul glisse l'argent dans des lettres pour sa mère ===== */
-add(LT,BX(10,.2,8),mWood,0,-.1,-1);add(LT,BX(10,4,.3),mWood,0,2,-2.6);add(LT,BX(1.2,1.4,.05),new THREE.MeshBasicMaterial({color:0x8fa8d8}),-2.2,2,-2.42);
+add(LT,BX(10,.2,8),mWoodBig,0,-.1,-1);add(LT,BX(10,4,.3),mWoodBig,0,2,-2.6);add(LT,BX(1.2,1.4,.05),new THREE.MeshBasicMaterial({color:0x8fa8d8}),-2.2,2,-2.42);
 add(LT,BX(2,.06,.9),mWood,0,.78,-.2);[-.9,.9].forEach(x=>[-.55,.15].forEach(z=>add(LT,BX(.07,.78,.07),mWood,x,.39,z)));
 add(LT,BX(.5,.05,.5),mWood,0,.45,-.95);add(LT,BX(.5,.6,.05),mWood,0,.8,-1.2);
 add(LT,BX(.5,.3,.35),M(0x4a2c14,.7),-.75,.96,-.2);const mound=add(LT,new THREE.SphereGeometry(.2,12,8),gold,-.75,1.1,-.2);mound.scale.y=.4;
@@ -191,12 +209,17 @@ function aInit(){AC=new(window.AudioContext||window.webkitAudioContext)();lp=AC.
   w.connect(wf);wf.connect(wg);wg.connect(out);w.start();lfo.frequency.value=.15;lg.gain.value=.04;lfo.connect(lg);lg.connect(wg.gain);lfo.start(); // vent
   mg=AC.createGain();mg.gain.value=0;const mf=AC.createBiquadFilter();mf.type='lowpass';mf.frequency.value=900;mg.connect(mf);mf.connect(out); // musique
   [110,164.8,220,261.6,329.6].forEach((f,i)=>{const o=AC.createOscillator();o.type=i<2?'sawtooth':'triangle';o.frequency.value=f*(1+(i%2?.003:-.003));o.connect(mg);o.start()})}
-function nz(dur,f0,f1,v,type='bandpass',q=2){const s=AC.createBufferSource(),f=AC.createBiquadFilter(),g=AC.createGain(),n=AC.currentTime;s.buffer=NB;s.loop=true;f.type=type;f.Q.value=q;
+function nz(dur,f0,f1,v,type='bandpass',q=2,dl=0){const s=AC.createBufferSource(),f=AC.createBiquadFilter(),g=AC.createGain(),n=AC.currentTime+dl;s.buffer=NB;s.loop=true;f.type=type;f.Q.value=q;
   f.frequency.setValueAtTime(f0,n);f.frequency.exponentialRampToValueAtTime(f1,n+dur);g.gain.setValueAtTime(v,n);g.gain.exponentialRampToValueAtTime(.0001,n+dur);s.connect(f);f.connect(g);g.connect(out);s.start(n);s.stop(n+dur)}
 function tn(fr,dur,v,type='sine',f2=fr,dl=0){const o=AC.createOscillator(),g=AC.createGain(),n=AC.currentTime+dl;o.type=type;o.frequency.setValueAtTime(fr,n);o.frequency.exponentialRampToValueAtTime(f2,n+dur);
   g.gain.setValueAtTime(v,n);g.gain.exponentialRampToValueAtTime(.0001,n+dur);o.connect(g);g.connect(out);o.start(n);o.stop(n+dur)}
 const SFX={
-  screw:()=>{nz(1.2,900,2400,.25,'bandpass',8);tn(180,1.2,.05,'sawtooth',320)},
+  screw:()=>{nz(.06,900,300,.5,'lowpass',1); // la vis qui décolle
+    for(let i=0;i<14;i++){const d=.1+Math.pow(i/13,1.3)*1.1; // cliquets qui ralentissent
+      tn(2600+Math.random()*300,.025,.09,'square',1400,d);nz(.03,4000,2000,.1,'bandpass',2,d);tn(160,.05,.12,'triangle',100,d)}
+    nz(1.1,1800,3200,.04,'bandpass',14,.1); // grincement métallique
+    tn(3300,.3,.07,'sine',3000,1.25);tn(5100,.2,.03,'sine',4800,1.27)}, // tintement quand la vis sort
+  scrape:()=>{nz(.7,700,300,.18,'bandpass',3);tn(110,.6,.05,'sawtooth',70)},
   wood:(v=1)=>{nz(.12,500,150,.5*v,'lowpass',1);tn(140,.1,.25*v,'triangle',70)},
   creak:()=>{tn(90+Math.random()*40,.5,.06,'sawtooth',60+Math.random()*30);nz(.5,300,500,.06,'bandpass',12)},
   step:()=>nz(.08,300,120,.35,'lowpass',1),
@@ -210,19 +233,22 @@ const SFX={
   crackle:()=>nz(.03,3000,1500,.08+Math.random()*.08,'bandpass',1)};
 const SUB=$('sub');let subT;
 function sub(txt,ms){SUB.textContent=txt;SUB.style.opacity=1;clearTimeout(subT);subT=setTimeout(()=>SUB.style.opacity=0,ms)}
-function babble(txt,pitch){ // voix de secours synthétisée (voyelles à formants), passe par le filtre « oreilles bouchées »
-  const F={a:[800,1200],e:[500,1800],i:[300,2300],o:[500,900],u:[350,700],y:[300,2200]},f0=70+pitch*80;let d=0;
+/* Voix : chaque personnage a sa hauteur (p), sa vitesse (r), son index de voix système (i),
+   sa fréquence de secours (f) et un décalage de formants (k) pour la voix synthétisée */
+const VO={jw:{p:.5,r:.8,i:0,f:70,k:.9},ct:{p:.95,r:.85,i:1,f:105,k:1},ch:{p:1.7,r:1.2,i:2,f:150,k:1.2}};
+function babble(txt,v){ // voix de secours synthétisée (voyelles à formants), passe par le filtre « oreilles bouchées »
+  const F={a:[800,1200],e:[500,1800],i:[300,2300],o:[500,900],u:[350,700],y:[300,2200]},f0=v.f;let d=0;
   for(const ch of txt.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()){
     if(F[ch]){const n=AC.currentTime+d,o=AC.createOscillator(),g=AC.createGain();o.type='sawtooth';o.frequency.setValueAtTime(f0*(1+.08*Math.sin(d*5)),n);
       g.gain.setValueAtTime(0,n);g.gain.linearRampToValueAtTime(.9,n+.02);g.gain.linearRampToValueAtTime(0,n+.12);o.connect(g);
-      F[ch].forEach(fr=>{const b=AC.createBiquadFilter();b.type='bandpass';b.frequency.value=fr;b.Q.value=7;g.connect(b);b.connect(out)});o.start(n);o.stop(n+.13);d+=.11}
+      F[ch].forEach(fr=>{const b=AC.createBiquadFilter();b.type='bandpass';b.frequency.value=fr*v.k;b.Q.value=7;g.connect(b);b.connect(out)});o.start(n);o.stop(n+.13);d+=.11}
     else if(ch===' ')d+=.08;else{setTimeout(()=>nz(.04,2500,1500,.15,'bandpass',1),d*1000);d+=.05}}}
-function say(txt,pitch,rate,ms=2500){
-  sub(txt,ms);let ok=false;
-  try{const ss=window.speechSynthesis;if(ss){const u=new SpeechSynthesisUtterance(txt);u.lang='fr-FR';u.pitch=pitch;u.rate=rate;u.volume=1;
-    const v=ss.getVoices().find(v=>v.lang&&v.lang.startsWith('fr'));if(v)u.voice=v;u.onerror=()=>babble(txt,pitch);ss.speak(u);ok=true;
-    setTimeout(()=>{if(!ss.speaking)babble(txt,pitch)},500)}}catch(e){}
-  if(!ok)babble(txt,pitch)}
+function say(txt,who,ms=2500){
+  const v=VO[who];sub(txt,ms);let ok=false;
+  try{const ss=window.speechSynthesis;if(ss){const u=new SpeechSynthesisUtterance(txt),fr=ss.getVoices().filter(x=>x.lang&&x.lang.startsWith('fr'));
+    u.lang='fr-FR';u.pitch=v.p;u.rate=v.r;u.volume=1;if(fr.length)u.voice=fr[v.i%fr.length];
+    u.onerror=()=>babble(txt,v);ss.speak(u);ok=true;setTimeout(()=>{if(!ss.speaking)babble(txt,v)},500)}}catch(e){}
+  if(!ok)babble(txt,v)}
 
 /* ---------- Physique simple des objets (gravité + rebond, intégré pas à pas) ---------- */
 function toss(tau,p0,v0){let[x,y,z]=p0,vx=v0[0],vy=0,vz=v0[2];for(let i=0;i<tau*120;i++){vy-=9.8/120;x+=vx/120;y+=vy/120;z+=vz/120;if(y<.03){y=.03;vy=-vy*.3;vx*=.6;vz*=.6;if(Math.abs(vy)<.3)vy=0}}return[x,y,z]}
@@ -270,8 +296,8 @@ function kitchen(t){
   else{const u=sm(k(t,12.2,13.5)),q=hold(cs(12));B.position.set(L(q[0],4.2,u),L(q[1],.975,u)+Math.sin(PI*u)*.2,L(q[2],.2,u))}
   const hr=t>=4&&t<12;A.rotation.y=B.rotation.y=hr?(s.yaw-PI/2)*(t<4.6?sm(k(t,3.6,4.3)):1):0;if(t>=12){const u=sm(k(t,12,13.5));A.rotation.y=B.rotation.y=L(cs(12).yaw-PI/2,0,u)}
   if(t>=4.6&&t<8.6)A.rotation.y=0.3;if(t>=12.5)A.rotation.y=B.rotation.y=0;
-  // balancement du pont quand l'enfant avance dessus
-  const onB=t>=14.5&&t<27.4?Math.sin(t*3)*.004:0;if(t>=13.5)[A,B].forEach(b=>b.rotation.z=onB);
+  // balancement du pont ; les tablettes frottent et vacillent au passage de l'ouverture
+  const sq=t>=14&&t<15.6?Math.sin(PI*k(t,14,15.6))*.035:0,onB=t>=14.5&&t<27.4?Math.sin(t*3)*.004:0;if(t>=13.5)[A,B].forEach(b=>b.rotation.z=onB+sq);
   // collier
   NK.rotation.y=t*.8;NK.visible=t<23.3;
   if(t>=22&&t<23.3){c.root.updateMatrixWorld(true);c.hands[1].g.getWorldPosition(V);NK.position.copy(V)}
@@ -296,8 +322,9 @@ const S=[
  [1,4.2,[-1.3,1.15,-1.1],[-1.6,1.1,-1.5],[-2.2,.85,-2.6],[-2.2,.8,-2.6]],
  [4.2,8.2,[-.3,1.2,-1.0],[-.4,1.1,-1.4],[.4,.85,-2.6],[.5,.8,-2.6]],
  [8.2,13.5,[-.5,1.7,1.8],[2,1.5,2.8],[.5,.6,-1],[2.8,.8,0]],
- [13.5,14.5,[2.2,1.5,2.5],[3.4,1.8,3],[2.8,.7,0],[3.4,1.1,0]],
- [14.5,21,[3.6,1.9,3.2],[6,1.7,3],[3.5,1.1,0],[6,1.1,0]],
+ [13.5,15.2,[1.4,1.5,1.6],[2.4,1.35,1.3],[2.6,1.1,0],[3.6,1.2,0]], // vue côté cuisine : il s'engage dans l'ouverture
+ [15.2,17.2,[5.0,1.6,1.8],[4.6,1.5,1.5],[3.4,1.2,0],[3.8,1.2,0]],  // contre-champ : il ressort avec les tablettes
+ [17.2,21,[4.0,1.9,3.2],[6,1.7,3],[4.3,1.1,0],[6,1.1,0]],
  [21,24,[6.3,1.5,1.5],[6.2,1.45,1.2],[6.3,1.3,0],[6.3,1.3,0]],
  [24,28,[5.5,2.2,3.5],[3.5,1.7,3.3],[4.5,1.1,0],[3.2,1,0]],
  [28,34.4,[.3,1.5,3.8],[.9,1.4,3.9],[2.0,.5,.8],[2.3,.5,2.4]],
@@ -314,14 +341,15 @@ ev(.5,()=>mg.gain.value=.05);
 [4.95,5.2,5.4].forEach((t,i)=>ev(t,()=>SFX.wood(.5/(i+1))));ev(8.6,()=>SFX.wood(.5));ev(9,()=>SFX.wood(.4));
 for(let t=9.2;t<12;t+=.38)ev(t,SFX.step);for(let t=28.7;t<31;t+=.38)ev(t,SFX.step);
 ev(12.9,()=>SFX.wood());ev(13.3,()=>SFX.wood(.8));ev(14,SFX.creak);
+ev(13.9,SFX.scrape);ev(14.6,SFX.cloth);ev(15.1,SFX.scrape); // passage dans l'ouverture
 for(let t=14.6;t<21;t+=.62){ev(t,SFX.hand);ev(t+.3,SFX.hand)}for(let t=15;t<21;t+=1.4)ev(t,SFX.creak);
 for(let t=24.5;t<27.4;t+=.45){ev(t,SFX.hand);ev(t+.22,SFX.hand)}ev(25,SFX.creak);ev(26.3,SFX.creak);
 ev(22.6,SFX.gems);ev(23.1,SFX.cloth);ev(23.4,SFX.cloth);
-ev(37.4,()=>say('Mon Dieu…',.7,.85,1800));ev(40.2,()=>say('Tiens, mon petit.',.7,.9,2000));ev(35.2,()=>SFX.wood(.3));
+ev(37.4,()=>say('Mon Dieu…','jw',1800));ev(40.2,()=>say('Tiens, mon petit.','jw',2000));ev(35.2,()=>SFX.wood(.3));
 for(let i=0;i<20;i++)ev(40.4+i*.05,SFX.coin);for(let i=0;i<8;i++)ev(41.9+i*.1,SFX.coin);ev(42,SFX.cloth);
 for(let i=0;i<16;i++){ev(LS+i*.85+.15,SFX.coin);ev(LS+i*.85+.45,SFX.paper);ev(LS+i*.85+.75,SFX.hand)}
-ev(OFF+36.9,()=>say('Le chevalier Floriani…',.55,.8));ev(OFF+40.4,()=>say('Ce petit avait tendu une main',.55,.9));
-ev(OFF+44,()=>say('Deux mains !',.8,1.1));ev(OFF+44.9,SFX.laugh);
+ev(OFF+36.9,()=>say('Le chevalier Floriani…','ct'));ev(OFF+40.4,()=>say('Ce petit avait tendu une main','ct'));
+ev(OFF+44,()=>say('Deux mains !','ch'));ev(OFF+44.9,SFX.laugh);
 for(let t=OFF+53.4;t<OFF+56;t+=.4)ev(t,SFX.paper);for(let t=OFF+56;t<OFF+58;t+=.25)ev(t,()=>tn(500,.15,.05,'triangle',300));ev(OFF+57,SFX.thud);
 E.sort((a,b)=>a[0]-b[0]);
 
