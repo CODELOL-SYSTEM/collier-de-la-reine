@@ -86,7 +86,7 @@ add(K,BX(1.4,1.1,.8),mStone,-3.5,.55,-1);const fire=new THREE.PointLight(0xff7a2
 add(K,new THREE.SphereGeometry(.3,10,8),new THREE.MeshBasicMaterial({color:0xff7a20}),-3.2,.5,-1).castShadow=false;
 const moon=new THREE.DirectionalLight(0x9fb4e8,3.6);moon.position.set(9,7,4);moon.castShadow=true;moon.shadow.mapSize.set(2048,2048);
 Object.assign(moon.shadow.camera,{left:-9,right:9,top:9,bottom:-9,far:30});moon.shadow.radius=4;K.add(moon);
-K.add(new THREE.HemisphereLight(0x7a8ab0,0x302418,2.6),new THREE.AmbientLight(0x909098,1.4));K.add(Object.assign(new THREE.PointLight(0xffe0b0,14,14,2),{position:new THREE.Vector3(-1,2.8,.5)}));
+K.add(new THREE.HemisphereLight(0x7a8ab0,0x302418,2.6),new THREE.AmbientLight(0x909098,1.4));const kl=new THREE.PointLight(0xffe0b0,14,14,2);kl.position.set(-1,2.8,.5);K.add(kl);
 const cabL=new THREE.PointLight(0xffb070,6,8,2);cabL.position.set(6.3,2.2,.6);K.add(cabL);
 // tablettes en bois + vis (dévissables) + supports muraux
 const plank=x=>{const b=new THREE.Group();add(b,BX(2.4,.05,.35),mWood);
@@ -344,7 +344,7 @@ function frame(t,dt){
 }
 function loop(now){if(!running)return;requestAnimationFrame(loop);const dt=Math.min((now-last)/1000,.1);last=now;clock+=dt;
   while(E.length&&E[0][0]<=clock)E.shift()[1]();frame(Math.min(clock,END),dt);R.render(scene,cam);if(clock>=END)finish()}
-function finish(){running=false;over=true;speechSynthesis.cancel();setTimeout(()=>AC.close(),500);$('stage').remove();SUB.remove();yrEl.remove();fade.remove();document.body.style.overflow='auto';$('site').style.display='block'}
+function finish(){running=false;over=true;speechSynthesis.cancel();setTimeout(()=>AC.close(),500);$('stage').remove();SUB.remove();yrEl.remove();fade.remove();document.body.style.overflow='auto';$('site').style.display='flex'}
 
 /* ---------- Démarrage : chargement → « Mettez du son » → cinématique (non skippable) ---------- */
 ['keydown','keyup','contextmenu','wheel','touchmove','dragstart'].forEach(e=>addEventListener(e,ev=>{if(running)ev.preventDefault()},{passive:false}));
