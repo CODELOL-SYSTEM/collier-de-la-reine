@@ -283,8 +283,8 @@ function kitchen(t){const s=cs(t),c=child;own(K,c.root);c.root.position.set(s.x,
  face(c);
  const sc=(P,t0)=>P.screws.forEach((v,i)=>{const p=k(t,t0+i*.9,t0+i*.9+.9);v.rotation.y=p*22;v.position.y=.03+p*.1});sc(A,.2);sc(B,1.6);
  const h=hold(s);
- if(t<3)A.position.set(-2.2,.75,-2.8);else if(t<6)A.position.set(...h);else{const u=sm(k(t,6,7.4));A.position.set(L(h[0],3.2,u),L(.5,.985,u),L(h[2],-.22,u))}
- if(t<3.2)B.position.set(.5,.75,-2.8);else if(t<6){B.position.set(h[0],h[1]+.08,h[2])}else{const u=sm(k(t,6,7.4));B.position.set(L(h[0],3.2,u),L(.58,.985,u),L(h[2],.22,u))}
+ if(t<3)A.position.set(-2.2,.75,-2.8);else if(t<6)A.position.set(...h);else{const u=sm(k(t,6,7.4));A.position.set(L(h[0],4.3,u),L(.5,.985,u),L(h[2],-.22,u))}
+ if(t<3.2)B.position.set(.5,.75,-2.8);else if(t<6){B.position.set(h[0],h[1]+.08,h[2])}else{const u=sm(k(t,6,7.4));B.position.set(L(h[0],4.3,u),L(.58,.985,u),L(h[2],.22,u))}
  A.rotation.y=B.rotation.y=t<3?0:t<6?s.yaw-PI/2:L(s.yaw-PI/2,0,sm(k(t,6,7.4)));
  NK.rotation.y=t*.8;NK.visible=true;if(t>=13&&t<22){c.root.updateMatrixWorld(true);c.hands[1].getWorldPosition(V);NK.position.copy(V)}else NK.position.set(6.4,1.5,0);
  stand(mother,0);mother.body.rotation.x=.2;mother.head.rotation.x=.3;mother.sh.forEach((q,i)=>q.rotation.set(-1.1+Math.sin(t*3+i*PI)*.18,0,i?.15:-.15));mother.el.forEach(e=>e.rotation.x=-.9);face(mother)}
