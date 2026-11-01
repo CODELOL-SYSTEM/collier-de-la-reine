@@ -11,12 +11,12 @@ const k=(t,a,b)=>cl((t-a)/(b-a),0,1),sm=u=>u*u*(3-2*u),L=(a,b,u)=>a+(b-a)*u;
 
 /* ================= RENDU + POST-TRAITEMENT CINÉMA ================= */
 const PR=Math.min(devicePixelRatio,1.5),R=new THREE.WebGLRenderer({antialias:false,powerPreference:'high-performance'});
-R.setPixelRatio(PR);R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;R.toneMapping=THREE.ACESFilmicToneMapping;R.toneMappingExposure=1.9;$('stage').appendChild(R.domElement);
+R.setPixelRatio(PR);R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;R.toneMapping=THREE.ACESFilmicToneMapping;R.toneMappingExposure=1.15;$('stage').appendChild(R.domElement);
 const ENV=new THREE.PMREMGenerator(R).fromScene(new RoomEnvironment(),.03).texture,AN=Math.min(16,R.capabilities.getMaxAnisotropy());
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x070a14);scene.fog=new THREE.FogExp2(0x0a0d18,.032);scene.environment=ENV;
 const cam=new THREE.PerspectiveCamera(42,1,.05,80);
 const composer=new EffectComposer(R,new THREE.WebGLRenderTarget(innerWidth*PR,innerHeight*PR,{type:THREE.HalfFloatType,samples:2}));
-composer.addPass(new RenderPass(scene,cam));composer.addPass(new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),.6,.8,.88));
+composer.addPass(new RenderPass(scene,cam));composer.addPass(new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),.25,.5,.95));
 const grade=new ShaderPass({uniforms:{tDiffuse:{value:null},time:{value:0}},
  vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
  fragmentShader:`uniform sampler2D tDiffuse;uniform float time;varying vec2 vUv;
@@ -24,7 +24,7 @@ const grade=new ShaderPass({uniforms:{tDiffuse:{value:null},time:{value:0}},
  void main(){vec2 c=vUv-.5;float d=dot(c,c);vec2 o=c*d*.016;
   vec3 col=vec3(texture2D(tDiffuse,vUv+o).r,texture2D(tDiffuse,vUv).g,texture2D(tDiffuse,vUv-o).b);
   vec3 bl=vec3(0.);for(int i=0;i<6;i++){float a=float(i)*1.0472;bl+=texture2D(tDiffuse,vUv+vec2(cos(a),sin(a))*d*.018).rgb;}bl/=6.;
-  col=mix(col,bl,smoothstep(.05,.32,d)*.75);col+=max(bl-.8,0.)*vec3(.9,.35,.08)*.35;
+  col=mix(col,bl,smoothstep(.05,.32,d)*.75);col+=max(bl-.8,0.)*vec3(.9,.35,.08)*.1;
   col*=1.-smoothstep(.06,.5,d)*.82;col+=(h(vUv*vec2(1920.,1080.))-.5)*.03;
   float l=dot(col,vec3(.299,.587,.114));col=mix(vec3(l),col,1.12);
   col=mix(col*vec3(.9,.98,1.1),col*vec3(1.1,1.,.86),smoothstep(.08,.85,l));
@@ -68,18 +68,18 @@ const mS=stone(3,3),mW=wood(2,2),gold=M(0xe0b030,.22,1),iron=M(0x2a2a30,.4,.7),c
 const rug=(p,x,z,w,d,y=.012)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),tm(rugT,1,1,{roughness:1,bumpScale:1}));m.rotation.x=-PI/2;m.position.set(x,y,z);m.receiveShadow=true;p.add(m)};
 
 /* ---------- lueurs, poussière, flammes ---------- */
-const glows=[],dusts=[],fireC=[],flames=[],FL=new THREE.Color(3,1.6,.4),GL=new THREE.Color(2.2,1.1,.35);
+const glows=[],dusts=[],fireC=[],flames=[],FL=new THREE.Color(1.6,.9,.25),GL=new THREE.Color(1.1,.55,.18);
 const gTex=ct(128,128,(g)=>{const r=g.createRadialGradient(64,64,0,64,64,64);r.addColorStop(0,'rgba(255,255,255,1)');r.addColorStop(.2,'rgba(255,255,255,.4)');r.addColorStop(.5,'rgba(255,255,255,.1)');r.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=r;g.fillRect(0,0,128,128)});
-const glow=(p,x,y,z,s,c)=>{const m=new THREE.Sprite(new THREE.SpriteMaterial({map:gTex,color:c,blending:THREE.AdditiveBlending,depthWrite:false,transparent:true}));m.position.set(x,y,z);m.scale.set(s,s,1);m.userData.s=s;p.add(m);glows.push(m)};
+const glow=(p,x,y,z,s,c)=>{const m=new THREE.Sprite(new THREE.SpriteMaterial({map:gTex,color:c,blending:THREE.AdditiveBlending,depthWrite:false,transparent:true}));m.material.opacity=.45;m.position.set(x,y,z);m.scale.set(s,s,1);m.userData.s=s;p.add(m);glows.push(m)};
 const dust=(p,cx,cy,cz,sx,sy,sz,n=220)=>{const g=new THREE.BufferGeometry(),a=new Float32Array(n*3);for(let i=0;i<n;i++){a[i*3]=cx+(Math.random()-.5)*sx;a[i*3+1]=cy+Math.random()*sy;a[i*3+2]=cz+(Math.random()-.5)*sz}
- g.setAttribute('position',new THREE.BufferAttribute(a,3));const m=new THREE.Points(g,new THREE.PointsMaterial({map:gTex,size:.05,color:0xffd9a0,transparent:true,opacity:.55,blending:THREE.AdditiveBlending,depthWrite:false}));p.add(m);dusts.push(m)};
+ g.setAttribute('position',new THREE.BufferAttribute(a,3));const m=new THREE.Points(g,new THREE.PointsMaterial({map:gTex,size:.035,color:0xffd9a0,transparent:true,opacity:.3,blending:THREE.AdditiveBlending,depthWrite:false}));p.add(m);dusts.push(m)};
 const flameG=(()=>{const q=[];for(let i=0;i<=10;i++){const u=i/10;q.push(new THREE.Vector2(Math.sin(Math.pow(u,.7)*PI)*.5*(1-u*.35),u))}return new THREE.LatheGeometry(q,14)})();
 function candle(p,x,y,z,i=6){add(p,CY(.025,.03,.18,20),MP(0xf2e6c8,.45,{sheen:1,sheenColor:new THREE.Color(0xffd9a0)}),x,y+.09,z);add(p,CY(.045,.05,.012,24),gold,x,y+.006,z);
  const f=new THREE.Mesh(flameG,new THREE.MeshBasicMaterial({color:FL,transparent:true,opacity:.95,blending:THREE.AdditiveBlending,depthWrite:false})),g=new THREE.Group();g.scale.set(.026,.06,.026);g.position.set(x,y+.18,z);g.add(f);p.add(g);fireC.push(f);
  glow(p,x,y+.21,z,.55,GL);const l=new THREE.PointLight(0xffa850,i,9,2);l.userData.b=i;l.position.set(x,y+.25,z);p.add(l);flames.push(l)}
 
 /* ---------- le collier : chaîne + diamants taillés ---------- */
-const gemM=new THREE.MeshStandardMaterial({color:0xffffff,roughness:.02,metalness:.3,emissive:0x8fc0ff,emissiveIntensity:.9,envMapIntensity:2.4,flatShading:true});
+const gemM=new THREE.MeshStandardMaterial({color:0xffffff,roughness:.02,metalness:.3,emissive:0x8fc0ff,emissiveIntensity:.35,envMapIntensity:1.2,flatShading:true});
 function necklace(lit=true){const g=new THREE.Group();
  for(let i=0;i<48;i++){const a=i/48*2*PI,l=add(g,new THREE.TorusGeometry(.011,.0028,6,12),gold,Math.cos(a)*.12,Math.sin(a)*.12,0);l.rotation.z=a+PI/2;if(i%2)l.rotation.y=PI/2;l.scale.x=1.4}
  for(let i=0;i<26;i++){const a=i/26*2*PI,big=i%5===0,x=Math.cos(a)*.12,y=Math.sin(a)*.12;add(g,new THREE.OctahedronGeometry(big?.026:.013,0),gemM,x,y,0).scale.y=1.3;if(big)glow(g,x,y,0,.06,new THREE.Color(.6,.9,1.6))}
