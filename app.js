@@ -1,4 +1,3 @@
-/* « Le collier » — PARTIE 1/2 : rendu, textures, personnages, décors. Ne pas lancer seul : la page charge app.js. */
 /* « Le collier » — cinématique 3D Three.js, UN SEUL FICHIER (aucun autre fichier à charger). Non skippable. */
 import * as THREE from 'three';
 import {EffectComposer} from 'three/addons/postprocessing/EffectComposer.js';
@@ -11,12 +10,12 @@ const $=i=>document.getElementById(i),PI=Math.PI,cl=THREE.MathUtils.clamp;
 const k=(t,a,b)=>cl((t-a)/(b-a),0,1),sm=u=>u*u*(3-2*u),L=(a,b,u)=>a+(b-a)*u;
 
 /* ================= RENDU + POST-TRAITEMENT CINÉMA ================= */
-const PR=Math.min(devicePixelRatio,2),R=new THREE.WebGLRenderer({antialias:false,powerPreference:'high-performance'});
+const PR=Math.min(devicePixelRatio,1.5),R=new THREE.WebGLRenderer({antialias:false,powerPreference:'high-performance'});
 R.setPixelRatio(PR);R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;R.toneMapping=THREE.ACESFilmicToneMapping;R.toneMappingExposure=1.9;$('stage').appendChild(R.domElement);
 const ENV=new THREE.PMREMGenerator(R).fromScene(new RoomEnvironment(),.03).texture,AN=Math.min(16,R.capabilities.getMaxAnisotropy());
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x070a14);scene.fog=new THREE.FogExp2(0x0a0d18,.032);scene.environment=ENV;
 const cam=new THREE.PerspectiveCamera(42,1,.05,80);
-const composer=new EffectComposer(R,new THREE.WebGLRenderTarget(innerWidth*PR,innerHeight*PR,{type:THREE.HalfFloatType,samples:4}));
+const composer=new EffectComposer(R,new THREE.WebGLRenderTarget(innerWidth*PR,innerHeight*PR,{type:THREE.HalfFloatType,samples:2}));
 composer.addPass(new RenderPass(scene,cam));composer.addPass(new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),.6,.8,.88));
 const grade=new ShaderPass({uniforms:{tDiffuse:{value:null},time:{value:0}},
  vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
@@ -120,7 +119,7 @@ function ppl(o){const root=new THREE.Group(),body=new THREE.Group();root.add(bod
   const hp=new THREE.Group();hp.position.set(sx*.09,0,0);body.add(hp);add(hp,CP(.068,.3),bot,0,-.21,0);add(hp,SP(.072,12,10),bot);
   const kg=new THREE.Group();kg.position.y=-.42;hp.add(kg);add(kg,CP(.05,.28),bot,0,-.2,0);add(kg,SP(.056,10,8),bot);add(kg,SP(.05,14,10),boot,0,-.425,.05).scale.set(.95,.6,2);add(kg,BX(.05,.03,.02),gold,0,-.41,.115);hip.push(hp);kn.push(kg)}
  root.scale.setScalar(o.s);return{root,body,head,brows,mouth,sh,el,hands,hip,kn}}
-let T=0;
+let T=0;const setT=v=>{T=v};
 const face=(p,e=0,sur=0,talk=0)=>{p.mouth.scale.y=cl(L(1,.12,e)+sur+talk*Math.abs(Math.sin(T*13))*.8,.12,1.8);p.brows[0].rotation.z=-e*.5;p.brows[1].rotation.z=e*.5};
 function stand(p,w=0){const a=Math.sin(T*7)*w;p.body.rotation.x=0;p.head.rotation.x=0;p.hip[0].rotation.x=a*.5;p.hip[1].rotation.x=-a*.5;p.kn[0].rotation.x=Math.max(0,-a)*.7;p.kn[1].rotation.x=Math.max(0,a)*.7;p.sh[0].rotation.set(-a*.4,0,-.08);p.sh[1].rotation.set(a*.4,0,.08);p.el.forEach(e=>e.rotation.x=-.2)}
 function crawl(p,pit,w){const a=Math.sin(T*5)*w;p.body.rotation.x=pit;p.head.rotation.x=-pit+.55;[0,1].forEach(i=>{const d=i?a:-a;p.sh[i].rotation.set(-pit+d*.5,0,i?.05:-.05);p.hip[i].rotation.set(-pit-d*.4,0,0);p.kn[i].rotation.x=PI/2+.1;p.el[i].rotation.x=-.1})}
@@ -155,7 +154,7 @@ add(K,BX(.6,.04,.5),new THREE.MeshBasicMaterial({color:new THREE.Color(2,.5,.1)}
 [[-.12,.3],[.1,-.2]].forEach(([dz,ry])=>{const l=add(K,CY(.07,.07,.6,10),M(0x2a1a10,.9),-3.45,.24,-1+dz);l.rotation.z=PI/2;l.rotation.y=ry});
 for(let i=0;i<6;i++){const g=new THREE.ConeGeometry(.1,.5,10);g.translate(0,.25,0);const m=add(K,g,new THREE.MeshBasicMaterial({color:new THREE.Color(3,1.1+i*.1,.2),transparent:true,opacity:.85,blending:THREE.AdditiveBlending,depthWrite:false}),-3.45+(Math.random()-.5)*.5,.2,-1+(Math.random()-.5)*.4);m.castShadow=false;fireC.push(m)}
 glow(K,-3.4,.55,-1,2,new THREE.Color(1.6,.55,.12));const fire=new THREE.PointLight(0xff7a20,10,12,2);fire.userData.b=10;fire.position.set(-3.1,.7,-1);K.add(fire);flames.push(fire);
-const moon=new THREE.DirectionalLight(0x9fb4e8,3.3);moon.position.set(9,7,4);moon.castShadow=true;moon.shadow.mapSize.set(4096,4096);moon.shadow.bias=-.0003;moon.shadow.normalBias=.02;Object.assign(moon.shadow.camera,{left:-10,right:10,top:10,bottom:-10,far:32});K.add(moon);
+const moon=new THREE.DirectionalLight(0x9fb4e8,3.3);moon.position.set(9,7,4);moon.castShadow=true;moon.shadow.mapSize.set(2048,2048);moon.shadow.bias=-.0003;moon.shadow.normalBias=.02;Object.assign(moon.shadow.camera,{left:-10,right:10,top:10,bottom:-10,far:32});K.add(moon);
 amb(K,0x7a8ab0,0x302418,0x909098,2.4);const kl=new THREE.PointLight(0xffe0b0,14,14,2);kl.position.set(-1,2.8,.5);K.add(kl);dust(K,0,.3,0,14,3.5,8);
 const plank=x=>{const b=new THREE.Group();add(b,BX(2.4,.05,.35),wood(2.4,.35));b.screws=[-.5,.5].map(dx=>{const s=new THREE.Group();s.position.set(dx,.03,0);add(s,CY(.037,.037,.015,16),M(0x9a9a9a,.3,.9),0,.05,0);add(s,BX(.05,.018,.008),iron,0,.058,0);b.add(s);return s});[-.5,.5].forEach(dx=>add(K,BX(.08,.05,.3),mW,x+dx,.7,-2.82));K.add(b);return b};
 const A=plank(-2.2),B=plank(.5);A.position.set(-2.2,.75,-2.8);B.position.set(.5,.75,-2.8);
@@ -191,7 +190,7 @@ rug(JW,0,1.2,5,3);add(JW,BX(1.2,1.8,.5),M(0x2a2e34,.35,.8),-3.5,.9,-2.1);add(JW,
 add(JW,new THREE.CircleGeometry(.5,32),MP(0xcfd8e8,.02,{metalness:1,envMapIntensity:1.4}),-1.8,2.4,-2.43);add(JW,TR(.52,.04),gold,-1.8,2.4,-2.42);
 add(JW,BX(1.4,2.2,.5),wood(1.4,2.2),3.6,1.1,-2.1);
 [-1.6,1.6].forEach(x=>{add(JW,CY(.01,.01,1,6),iron,x,3.5,-.2);const l=add(JW,new THREE.ConeGeometry(.28,.3,24,1,true),M(0x2a5a3a,.5,.3),x,2.88,-.2);l.material.side=2;glow(JW,x,2.8,-.2,1.1,new THREE.Color(1.3,.9,.4))});
-amb(JW,0x9a90a0,0x302418,0xa09080,2.2);const jl=new THREE.PointLight(0xffd29a,14,12,2);jl.position.set(0,2.5,.8);jl.castShadow=true;jl.shadow.mapSize.set(2048,2048);jl.shadow.bias=-.0008;JW.add(jl);
+amb(JW,0x9a90a0,0x302418,0xa09080,2.2);const jl=new THREE.PointLight(0xffd29a,14,12,2);jl.position.set(0,2.5,.8);jl.castShadow=true;jl.shadow.mapSize.set(1024,1024);jl.shadow.bias=-.0008;JW.add(jl);
 glow(JW,0,.95,.3,1.6,new THREE.Color(.8,.5,.2));dust(JW,0,.3,-.5,8,3,5);
 const jw=ppl({s:.9,top:0x4a3a30,bot:0x2a2018,vest:0x6a1a1a,hair:0xcccccc,skin:0xe3b48e,mustache:1,glasses:1});jw.root.position.set(0,0,-.7);JW.add(jw.root);
 const coins=[];for(let i=0;i<45;i++){const c=add(JW,CY(.04,.04,.008,16),gold,.25+(Math.random()-.5)*.35,.784+Math.floor(i/9)*.01,.05+(Math.random()-.5)*.25);c.visible=false;coins.push(c)}
@@ -217,7 +216,7 @@ rug(TB,0,0,5,3.6);[-4.5,4.5].forEach(x=>{add(TB,CY(.25,.28,4.5,28),stone(1.6,4.5
 const CHD=new THREE.Group();CHD.position.set(0,3.6,0);TB.add(CHD);add(CHD,TR(.55,.025),iron).rotation.x=PI/2;add(CHD,CY(.012,.012,1.4,6),iron,0,.7,0);
 for(let i=0;i<6;i++){const a=i/6*PI*2;add(CHD,CY(.02,.025,.14,10),M(0xf2e6c8,.7),Math.cos(a)*.55,.07,Math.sin(a)*.55);glow(CHD,Math.cos(a)*.55,.19,Math.sin(a)*.55,.4,GL)}
 const cl2=new THREE.PointLight(0xffc880,8,9,2);cl2.userData.b=8;cl2.position.set(0,3.9,0);TB.add(cl2);flames.push(cl2);amb(TB,0x8090b0,0x302418,0x908898,2.4);
-const fl=new THREE.PointLight(0xffd8b0,12,10,2);fl.position.set(0,1.7,1.6);TB.add(fl);const dl=new THREE.SpotLight(0xffd8b0,220,14,.9,.6);dl.position.set(0,3.5,2.5);dl.target.position.set(0,1,-.5);dl.castShadow=true;dl.shadow.mapSize.set(2048,2048);TB.add(dl,dl.target);dust(TB,0,.3,0,6,3,4);
+const fl=new THREE.PointLight(0xffd8b0,12,10,2);fl.position.set(0,1.7,1.6);TB.add(fl);const dl=new THREE.SpotLight(0xffd8b0,220,14,.9,.6);dl.position.set(0,3.5,2.5);dl.target.position.set(0,1,-.5);dl.castShadow=true;dl.shadow.mapSize.set(1024,1024);TB.add(dl,dl.target);dust(TB,0,.3,0,6,3,4);
 const count=ppl({s:.9,top:0x1b2a5c,coat:0x1b2a5c,bot:0xd8d0c0,wig:1,skin:0xf0cfb4,vest:0xe8dfc8}),contessa=ppl({s:.9,top:0x7a1f3d,dress:0x7a1f3d,wig:1,skin:0xf2d4bc}),chev=ppl({s:.9,top:0x222222,bot:0x2a2a2e,hair:0x111111,hat:1,mustache:1});
 count.root.position.set(-.55,.5,-.95);contessa.root.position.set(.55,.5,-.95);chev.root.position.set(.1,.5,.95);chev.root.rotation.y=PI;[count,contessa,chev].forEach(p=>{sit(p);TB.add(p.root)});
 [-.55,.55].forEach(x=>add(TB,BX(.5,.05,.5),mW,x,.42,-.95));add(TB,BX(.5,.05,.5),mW,.1,.42,.95);
@@ -234,10 +233,6 @@ const Yv=new THREE.Vector3(0,1,0);
 [[pR,pC],[pR,pK],[pR,pH],[pR,pL],[pR,pF],[pC,pK],[pH,pL]].forEach(([a,b],i)=>{const d=new THREE.Vector3().subVectors(b,a),m=new THREE.Mesh(new THREE.CylinderGeometry(.018,.018,d.length(),6),M(0xc01818,.5));m.position.copy(a).addScaledVector(d,.5);m.quaternion.setFromUnitVectors(Yv,d.normalize());m.position.z+=.02;BD.add(m);reveal.push({o:m,t:6+i*.25})});
 const stamp=new THREE.Mesh(new THREE.PlaneGeometry(4,1.3),new THREE.MeshBasicMaterial({transparent:true,map:ct(512,160,(c,W,H)=>{c.strokeStyle=c.fillStyle='#c0141c';c.lineWidth=10;c.strokeRect(8,8,W-16,H-16);c.font='bold 100px Impact,sans-serif';c.textAlign='center';c.fillText('SUSPECT',W/2,H-38)})}));stamp.position.set(0,-.4,.2);stamp.rotation.z=-.22;stamp.visible=false;BD.add(stamp);
 
-
-export const setT=v=>{T=v};
-export {$,A,B,BD,JW,K,L,LT,NK,PI,R,TB,TG,THREE,TN,add,bdL,bill,cam,chev,child,coins,composer,contessa,count,crawl,ct,dl,dusts,envs,face,fireC,flames,flyEnv,glows,grade,jw,k,mother,quill,reveal,scene,seal,sheet,sit,sm,stamp,stand,wood};/* « Le collier » — PARTIE 2/2 : audio, voix, chorégraphie, caméra, boucle. Importe app1.js (même dossier). */
-import {setT,$,A,B,BD,JW,K,L,LT,NK,PI,R,TB,TG,THREE,TN,add,bdL,bill,cam,chev,child,coins,composer,contessa,count,crawl,ct,dl,dusts,envs,face,fireC,flames,flyEnv,glows,grade,jw,k,mother,quill,reveal,scene,seal,sheet,sit,sm,stamp,stand,wood} from './app1.js';
 /* ================= AUDIO (tout est synthétisé) + VOIX ================= */
 let AC,lp,out,NB,mg,musicTimer;const mtof=m=>440*Math.pow(2,(m-69)/12);
 function aInit(){AC=new(window.AudioContext||window.webkitAudioContext)();lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=20000;
